@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "../sjf_audio/sjf_LookAndFeel.h"
 
 //==============================================================================
 /**
@@ -28,6 +29,11 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Sjf_karplusStrongAudioProcessor& audioProcessor;
+    sjf_lookAndFeel otherLandF;
+    
+    juce::Slider attackBrightnessSlider, mediumBrightnessSlider, attSlider, blendSlider, driveSlider;
+    
+    juce::ToggleButton extendHighsButton, retriggerButton, randomTableButton, harpButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_karplusStrongAudioProcessorEditor)
 };

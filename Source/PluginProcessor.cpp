@@ -22,7 +22,11 @@ Sjf_karplusStrongAudioProcessor::Sjf_karplusStrongAudioProcessor()
                        )
 #endif
 {
-    m_string.prepare( getSampleRate() );
+    for ( auto& string : m_strings )
+        string.prepare( getSampleRate() );
+    
+    for ( auto& block : m_dcBlock )
+        block.setCutoff( calculateLPFCoefficient< double >( 30, getSampleRate() ) );
 }
 
 Sjf_karplusStrongAudioProcessor::~Sjf_karplusStrongAudioProcessor()
@@ -94,7 +98,10 @@ void Sjf_karplusStrongAudioProcessor::changeProgramName (int index, const juce::
 //==============================================================================
 void Sjf_karplusStrongAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    m_string.prepare( sampleRate );
+    for ( auto& string : m_strings )
+        string.prepare( sampleRate );
+    for ( auto& block : m_dcBlock )
+        block.setCutoff( calculateLPFCoefficient< double >( 30, sampleRate ) );
 }
 
 void Sjf_karplusStrongAudioProcessor::releaseResources()
@@ -143,6 +150,8 @@ void Sjf_karplusStrongAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
 //    {
 //        if( midiMessages )
 //    }
+//    for ( auto& string : m_strings )
+//        string.setAttackBrightness( 100 );
     
     auto noteIndex = 0;
     auto checkMidi = false;
@@ -150,11 +159,11 @@ void Sjf_karplusStrongAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     auto listIndex = 0;
     for ( const auto event : midiMessages )
     {
-        if ( event.getMessage().isNoteOn() )
+        if ( event.getMessage().isNoteOnOrOff() )
         {
             auto pos = event.samplePosition;
             auto pitch = event.getMessage().getNoteNumber();
-            auto vel = static_cast< int >(event.getMessage().getVelocity());
+            auto vel = event.getMessage().isNoteOff() ? 0 : static_cast< int >(event.getMessage().getVelocity());
             noteList.push_back( { pos, pitch, vel } );
         }
     }
@@ -168,16 +177,40 @@ void Sjf_karplusStrongAudioProcessor::processBlock (juce::AudioBuffer<float>& bu
     {
         while ( checkMidi && ( indexThroughCurrentBuffer == noteIndex ) && ( listIndex < noteList.size() ) )
         {
-//            auto noteRef = *note;
-            DBG( noteList[ listIndex ][ 1 ] << " " << noteList[ listIndex ][ 2 ] );
-            m_string.triggerNewNote( noteList[ listIndex ][ 1 ], noteList[ listIndex ][ 2 ] );
+            if ( noteList[ listIndex ][ 2 ] == 0  )
+            {
+                if ( m_triggerNoteOffs )
+                {
+                    for ( auto& str : m_strings )
+                    {
+                        if ( str.getCurrentPitch() == noteList[ listIndex ][ 1 ] )
+                        {
+                            str.triggerNoteOff();
+                            DBG( "noteoff");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                DBG( "noteon");
+                DBG(" voice " << m_voiceNum );
+                m_strings[ m_voiceNum ].triggerNewNote( noteList[ listIndex ][ 1 ], noteList[ listIndex ][ 2 ] );
+                m_voiceNum = fastMod( ++m_voiceNum, m_strings.size() );
+            }
             listIndex += 1;
-            if( listIndex >= noteList.size() )
-                break;
-            noteIndex = noteList[ listIndex ][ 0 ];
+            if( listIndex < noteList.size() )
+                noteIndex = noteList[ listIndex ][ 0 ];
+            DBG("");
         }
         
-//        m_string.processSample( indexThroughCurrentBuffer );
+        auto val = 0.0;
+        for ( auto& string : m_strings )
+        {
+            val += string.processSample( indexThroughCurrentBuffer );;
+        }
+        for ( auto channel = 0; channel < totalNumOutputChannels; channel++ )
+            buffer.setSample( channel , indexThroughCurrentBuffer, val/*m_dcBlock[ channel ].filterInputHP( val ) */ );
     }
 
     
