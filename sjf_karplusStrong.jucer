@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="gUu8A5" name="sjf_karplusStrong" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" displaySplashScreen="1"
-              jucerFormatVersion="1" companyWebsite="https://simohnf.github.io./"
-              companyName="sjf" pluginFormats="buildAU,buildAUv3,buildVST3"
-              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
-  <MAINGROUP id="SuSqRm" name="sjf_karplusStrong">
+<JUCERPROJECT id="gUu8A5" name="sjf_fyzik" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              companyWebsite="https://simohnf.github.io./" companyName="sjf"
+              pluginFormats="buildAU,buildAUv3,buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
+  <MAINGROUP id="SuSqRm" name="sjf_fyzik">
     <GROUP id="{BA8B2DA6-2405-4FA1-C4E1-284B8522EF4D}" name="Source">
       <FILE id="TrtBFm" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
@@ -20,8 +19,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="sjf_karplusStrong"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="sjf_karplusStrong" optimisation="6"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="sjf_fyzik"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="sjf_fyzik" optimisation="6"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>

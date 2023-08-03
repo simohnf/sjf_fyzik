@@ -9,20 +9,22 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../sjf_audio/sjf_karplusStrong.h"
+#include "../sjf_audio/sjf_waveguide.h"
 #include "../sjf_audio/sjf_lpf.h"
+
+#define NVOICES 16
 //==============================================================================
 /**
 */
-class Sjf_karplusStrongAudioProcessor  : public juce::AudioProcessor
+class Sjf_fyzikAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
 {
 public:
     //==============================================================================
-    Sjf_karplusStrongAudioProcessor();
-    ~Sjf_karplusStrongAudioProcessor() override;
+    Sjf_fyzikAudioProcessor();
+    ~Sjf_fyzikAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -57,68 +59,48 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    
-    void randomiseWavetable( bool shouldRandomise )
-    {
-        for ( auto i = 0; i < m_strings.size(); i++ )
-            m_strings[ i ].shouldRandomiseWavetable( shouldRandomise );
-    }
-    
-//    void retriggerNotes( bool retrigger )
-//    {
-//        for ( auto& string : m_strings )
-//            string.shouldRetrigger( retrigger );
-//    }
-    
-    void extendHighs( bool extendHighF )
-    {
-        for ( auto& string : m_strings )
-            string.shouldExtendHighFrequencies( extendHighF );
-    }
-    
-    void setAttackBrightness( double bright )
-    {
-        for ( auto& string : m_strings )
-            string.setAttackBrightness( bright );
-    }
-    
-    void setMediumBrightness( double bright )
-    {
-        for ( auto& string : m_strings )
-            string.setMediumBrightness( bright );
-    }
-    
+
     void shouldTriggerNoteOffs( bool trueIfTriggersNoteOffs )
     {
         m_triggerNoteOffs = trueIfTriggersNoteOffs;
     }
 
-    void setAttackTime( double attack )
-    {
-        auto att = attack * 0.01 * getSampleRate() * 0.1;
-        for ( auto& string : m_strings )
-            string.setAttackTime( att );
-    }
-    
-    void setBlend( double blend )
-    {
-        for ( auto& str : m_strings )
-            str.setBlend( blend );
-    }
-    
-    void setDrive( double drive )
-    {
-        for ( auto& str : m_strings )
-            str.setDrive( drive );
-    }
 private:
     //==============================================================================
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    juce::AudioProcessorValueTreeState parameters;
     
-    std::array< sjf_karplusStrongVoice, 32 > m_strings;
-    std::array< double, 4 > m_env{ 0, 100, 0, 0 };
+    void setParameters();
+    
+    std::array< sjf_waveguide, NVOICES > m_strings;
+//    std::array< std::array< double, 2 >, NVOICES > m_pan;
     size_t m_voiceNum = 0;
     std::array< sjf_lpf< double >, 2 > m_dcBlock;
     bool m_triggerNoteOffs = false;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_karplusStrongAudioProcessor)
+    
+    double m_exciteNoise = 0, m_exciteBright = 0, m_exciteEnvC = 0, m_exciteEnvE = 0, m_exciteEnvExt = 0, m_medBright = 0, m_decay = 0, m_split = 0, m_stiff = 0, m_sensorPos = 0, m_nonLinFactor = 0, m_harmonic = 0, m_jitter = 0, m_outputLevel = -6, m_stereoSpread = 0;
+    bool m_nonLinOn = false;
+    
+    std::array< std::array< juce::SmoothedValue< float >, 2 >, NVOICES > m_panSmoothers;
+    juce::SmoothedValue< float > m_outputSmoother;
+    
+    std::atomic<float>* noiseAmountParameter = nullptr;
+    std::atomic<float>* noiseLPFParameter = nullptr;
+    std::atomic<float>* exciteExtensionParameter = nullptr;
+    std::atomic<float>* exciteExponentParameter = nullptr;
+    std::atomic<float>* exciteCentreParameter = nullptr;
+    std::atomic<float>* mediumBrightnessParameter = nullptr;
+    std::atomic<float>* decayParameter = nullptr;
+    std::atomic<float>* sensorParameter = nullptr;
+    std::atomic<float>* stiffnessParameter = nullptr;
+    std::atomic<float>* splitParameter = nullptr;
+    std::atomic<float>* harmonicParameter = nullptr;
+    std::atomic<float>* buzzParameter = nullptr;
+    std::atomic<float>* buzzOnOffParameter = nullptr;
+    std::atomic<float>* jitterParameter = nullptr;
+    std::atomic<float>* outputLevelParameter = nullptr;
+    std::atomic<float>* spreadParameter = nullptr;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_fyzikAudioProcessor)
 };
